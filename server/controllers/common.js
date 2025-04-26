@@ -422,29 +422,26 @@ router.get('/*', async (req, res, next) => {
   // Handle random page request
   if (req.path === '/random' || req.path === '/en/random') {
     try {
-      const randomPage = await WIKI.graph.query(`
-        query {
-          pages {
-            randomPage {
-              path
-              localeCode
-            }
-          }
-        }
-      `, {
-        req
-      })
+      const randomPage = await WIKI.models.pages.query()
+        .column(['path', 'localeCode'])
+        .whereNot('path', 'home')
+        .orderByRaw('RANDOM()')
+        .limit(1)
+        .first()
 
-      if (randomPage?.data?.pages?.randomPage) {
-        const page = randomPage.data.pages.randomPage
+      if (randomPage) {
+        WIKI.logger.info(`Random page selected: ${randomPage.path} (${randomPage.localeCode})`)
         if (WIKI.config.lang.namespacing) {
-          return res.redirect(`/${page.localeCode}/${page.path}`)
+          return res.redirect(`/${randomPage.localeCode}/${randomPage.path}`)
         } else {
-          return res.redirect(`/${page.path}`)
+          return res.redirect(`/${randomPage.path}`)
         }
+      } else {
+        WIKI.logger.warn('No random page found')
+        return res.redirect('/')
       }
-      return res.redirect('/')
     } catch (err) {
+      WIKI.logger.error('Error getting random page:', err)
       return res.redirect('/')
     }
   }

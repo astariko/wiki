@@ -53,13 +53,16 @@ module.exports = {
       // Get total number of pages
       const total = await WIKI.models.pages.query().count('* as total').first()
       const totalPages = _.toSafeInteger(total.total)
+      WIKI.logger.info(`Total pages available: ${totalPages}`)
 
       if (totalPages === 0) {
+        WIKI.logger.warn('No pages found in database')
         throw new WIKI.Error.PageNotFound()
       }
 
       // Get random offset
       const randomOffset = Math.floor(Math.random() * totalPages)
+      WIKI.logger.info(`Random offset selected: ${randomOffset}`)
 
       // Get random page
       const page = await WIKI.models.pages.query()
@@ -91,14 +94,18 @@ module.exports = {
         .first()
 
       if (!page) {
+        WIKI.logger.warn('No page found at random offset')
         throw new WIKI.Error.PageNotFound()
       }
+
+      WIKI.logger.info(`Selected random page: ${page.path} (${page.localeCode})`)
 
       // Check access permissions
       if (!WIKI.auth.checkAccess(context.req.user, ['read:pages'], {
         path: page.path,
         locale: page.localeCode
       })) {
+        WIKI.logger.warn(`Access denied to random page: ${page.path}`)
         throw new WIKI.Error.PageViewForbidden()
       }
 
