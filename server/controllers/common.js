@@ -411,6 +411,29 @@ router.get('/_userav/:uid', async (req, res, next) => {
   return res.sendStatus(404)
 })
 
+router.get(['/random', '/en/random'], async (req, res, next) => {
+  try {
+    const randomPage = await WIKI.models.pages.query()
+      .column(['path', 'localeCode'])
+      .whereNot('path', 'home')
+      .orderByRaw('RANDOM()')
+      .limit(1)
+      .first()
+
+    if (randomPage) {
+      if (WIKI.config.lang.namespacing) {
+        return res.redirect(`/${randomPage.localeCode}/${randomPage.path}`)
+      } else {
+        return res.redirect(`/${randomPage.path}`)
+      }
+    } else {
+      return res.redirect('/')
+    }
+  } catch (err) {
+    return res.redirect('/')
+  }
+})
+
 /**
  * View document / asset
  */
@@ -418,33 +441,6 @@ router.get('/*', async (req, res, next) => {
   const stripExt = _.some(WIKI.config.pageExtensions, ext => _.endsWith(req.path, `.${ext}`))
   const pageArgs = pageHelper.parsePath(req.path, { stripExt })
   const isPage = (stripExt || pageArgs.path.indexOf('.') === -1)
-
-  // Handle random page request
-  if (req.path === '/random' || req.path === '/en/random') {
-    try {
-      const randomPage = await WIKI.models.pages.query()
-        .column(['path', 'localeCode'])
-        .whereNot('path', 'home')
-        .orderByRaw('RANDOM()')
-        .limit(1)
-        .first()
-
-      if (randomPage) {
-        WIKI.logger.info(`Random page selected: ${randomPage.path} (${randomPage.localeCode})`)
-        if (WIKI.config.lang.namespacing) {
-          return res.redirect(`/${randomPage.localeCode}/${randomPage.path}`)
-        } else {
-          return res.redirect(`/${randomPage.path}`)
-        }
-      } else {
-        WIKI.logger.warn('No random page found')
-        return res.redirect('/')
-      }
-    } catch (err) {
-      WIKI.logger.error('Error getting random page:', err)
-      return res.redirect('/')
-    }
-  }
 
   if (isPage) {
     if (WIKI.config.lang.namespacing && !pageArgs.explicitLocale) {
