@@ -47,50 +47,6 @@ module.exports = {
       }
     },
     /**
-     * GET RANDOM PAGE
-     */
-    async randomPage(obj, args, context, info) {
-      // Get total number of pages
-      const total = await WIKI.models.pages.query().count('* as total').first()
-      const totalPages = _.toSafeInteger(total.total)
-
-      if (totalPages === 0) {
-        throw new WIKI.Error.PageNotFound()
-      }
-
-      // Get random offset
-      const randomOffset = Math.floor(Math.random() * totalPages)
-
-      // Get random page
-      const page = await WIKI.models.pages.query()
-        .column([
-          'pages.*'
-        ])
-        .offset(randomOffset)
-        .limit(1)
-        .first()
-
-      if (!page) {
-        throw new WIKI.Error.PageNotFound()
-      }
-
-      // Check access permissions
-      if (!WIKI.auth.checkAccess(context.req.user, ['read:pages'], {
-        path: page.path,
-        locale: page.localeCode
-      })) {
-        throw new WIKI.Error.PageViewForbidden()
-      }
-
-      return {
-        ...page,
-        locale: page.localeCode,
-        editor: page.editorKey,
-        scriptJs: page.extra.js,
-        scriptCss: page.extra.css
-      }
-    },
-    /**
      * SEARCH PAGES
      */
     async search (obj, args, context) {
