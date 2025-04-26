@@ -49,6 +49,13 @@ module.exports = {
         return
       }
 
+      // -> Handle special 'random' value
+      if (href === 'random') {
+        $(elm).attr('href', '/random')
+        $(elm).addClass('is-internal-link')
+        return
+      }
+
       // -> Strip host from local links
       if (isHostSet && href.indexOf(`${WIKI.config.host}/`) === 0) {
         href = href.replace(WIKI.config.host, '')

@@ -419,6 +419,36 @@ router.get('/*', async (req, res, next) => {
   const pageArgs = pageHelper.parsePath(req.path, { stripExt })
   const isPage = (stripExt || pageArgs.path.indexOf('.') === -1)
 
+  // Handle random page request
+  if (req.path === '/random' || req.path === '/en/random') {
+    try {
+      const randomPage = await WIKI.graph.query(`
+        query {
+          pages {
+            randomPage {
+              path
+              localeCode
+            }
+          }
+        }
+      `, {
+        req
+      })
+
+      if (randomPage?.data?.pages?.randomPage) {
+        const page = randomPage.data.pages.randomPage
+        if (WIKI.config.lang.namespacing) {
+          return res.redirect(`/${page.localeCode}/${page.path}`)
+        } else {
+          return res.redirect(`/${page.path}`)
+        }
+      }
+      return res.redirect('/')
+    } catch (err) {
+      return res.redirect('/')
+    }
+  }
+
   if (isPage) {
     if (WIKI.config.lang.namespacing && !pageArgs.explicitLocale) {
       const query = !_.isEmpty(req.query) ? `?${qs.stringify(req.query)}` : ''
