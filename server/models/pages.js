@@ -388,12 +388,12 @@ module.exports = class Page extends Model {
     }
 
     // -> Create version snapshot
-    await WIKI.models.pageHistory.addVersion({
-      ...ogPage,
-      isPublished: ogPage.isPublished === true || ogPage.isPublished === 1,
-      action: opts.action ? opts.action : 'updated',
-      versionDate: ogPage.updatedAt
-    })
+    // await WIKI.models.pageHistory.addVersion({
+    //   ...ogPage,
+    //   isPublished: ogPage.isPublished === true || ogPage.isPublished === 1,
+    //   action: opts.action ? opts.action : 'updated',
+    //   versionDate: ogPage.updatedAt
+    // })
 
     // -> Format Extra Properties
     if (!_.isPlainObject(ogPage.extra)) {
@@ -629,14 +629,14 @@ module.exports = class Page extends Model {
     }
 
     // -> Create version snapshot
-    if (shouldConvert) {
-      await WIKI.models.pageHistory.addVersion({
-        ...ogPage,
-        isPublished: ogPage.isPublished === true || ogPage.isPublished === 1,
-        action: 'updated',
-        versionDate: ogPage.updatedAt
-      })
-    }
+    // if (shouldConvert) {
+    //   await WIKI.models.pageHistory.addVersion({
+    //     ...ogPage,
+    //     isPublished: ogPage.isPublished === true || ogPage.isPublished === 1,
+    //     action: 'updated',
+    //     versionDate: ogPage.updatedAt
+    //   })
+    // }
 
     // -> Update page
     await WIKI.models.pages.query().patch({
@@ -716,11 +716,11 @@ module.exports = class Page extends Model {
     }
 
     // -> Create version snapshot
-    await WIKI.models.pageHistory.addVersion({
-      ...page,
-      action: 'moved',
-      versionDate: page.updatedAt
-    })
+    // await WIKI.models.pageHistory.addVersion({
+    //   ...page,
+    //   action: 'moved',
+    //   versionDate: page.updatedAt
+    // })
 
     const destinationHash = pageHelper.generateHash({ path: opts.destinationPath, locale: opts.destinationLocale, privateNS: opts.isPrivate ? 'TODO' : '' })
 
@@ -803,11 +803,11 @@ module.exports = class Page extends Model {
     }
 
     // -> Create version snapshot
-    await WIKI.models.pageHistory.addVersion({
-      ...page,
-      action: 'deleted',
-      versionDate: page.updatedAt
-    })
+    // await WIKI.models.pageHistory.addVersion({
+    //   ...page,
+    //   action: 'deleted',
+    //   versionDate: page.updatedAt
+    // })
 
     // -> Delete page
     await WIKI.models.pages.query().delete().where('id', page.id)
